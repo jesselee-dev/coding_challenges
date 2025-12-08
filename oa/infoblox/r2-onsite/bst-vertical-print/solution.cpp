@@ -67,7 +67,7 @@ public:
             auto [node, col] = q.front();
             q.pop();
 
-            cols[col].push_back(node->val);
+            cols[col].push_back(node->val); 
 
             minCol = min(minCol, col);
             maxCol = max(maxCol, col);
