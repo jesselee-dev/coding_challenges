@@ -1,0 +1,64 @@
+-- 题目1（热身）： 查询所有客户的名字和国家，只显示来自 UK 的客户，按客户名字字母顺序排列。
+-- SELECT ClientName, Country FROM Clients WHERE Country = 'UK' ORDER BY ClientName;;
+
+--  题目2： 查询每个客户的名字，以及他们所有发票的总金额，按总金额从高到低排列。
+-- SELECT c.ClientName, SUM(i.Amount) AS Sum FROM Clients AS c JOIN Invoices AS i ON c.ClientID = i.ClientID  GROUP BY c.ClientName ORDER BY SUM(i.Amount) DESC; 
+
+-- 题目3（新概念：CTE）： 找出总金额超过30000的客户。
+-- WITH ClientTotals AS (
+--     SELECT c.ClientName, SUM(i.Amount) AS TotalAmount
+--     FROM Clients AS c
+--     JOIN Invoices AS i ON c.ClientID = i.ClientID
+--     GROUP BY c.ClientName
+-- )
+-- SELECT ClientName, TotalAmount
+-- FROM ClientTotals
+-- WHERE TotalAmount > 30000;
+
+-- 题目4（自己写）： 用CTE，先计算每个客户的未付发票总金额（Status = 'Unpaid'），然后只显示未付金额大于0的客户，按未付金额从高到低排列。
+-- WITH UnpaidTotal AS (
+--   SELECT c.ClientName, SUM(i.Amount) AS TotalUnpaid
+--   FROM Clients AS c
+--   JOIN Invoices AS i ON c.ClientID = i.ClientID
+--   WHERE i.Status = 'Unpaid'
+--   GROUP BY c.ClientName
+-- ) SELECT ClientName, TotalUnpaid
+-- FROM UnpaidTotal
+-- ORDER BY TotalUnpaid DESC; 
+
+-- 题目5（新概念：窗口函数）： 给每张发票按金额从高到低排名，显示发票ID、客户名、金额、和排名。
+-- SELECT 
+--     i.InvoiceID,
+--     c.ClientName,
+--     i.Amount,
+--     ROW_NUMBER() OVER (ORDER BY i.Amount DESC) AS Rank
+-- FROM Invoices AS i
+-- JOIN Clients AS c ON i.ClientID = c.ClientID;
+
+-- 题目6： 把上面的查询改成"每个客户内部"按金额排名，而不是所有发票一起排。
+-- SELECT 
+--     i.InvoiceID,
+--     c.ClientName,
+--     i.Amount,
+--     ROW_NUMBER() OVER (PARTITION BY c.ClientName ORDER BY i.Amount DESC) AS RankWithinClient
+-- FROM Invoices AS i
+-- JOIN Clients AS c ON i.ClientID = c.ClientID;
+
+-- 题目7（LAG函数）
+-- SELECT 
+--     i.InvoiceID,
+--     c.ClientName,
+--     i.InvoiceDate,
+--     i.Amount,
+--     LAG(i.Amount) OVER (PARTITION BY c.ClientName ORDER BY i.InvoiceDate) AS PrevInvoiceAmount
+-- FROM Invoices AS i
+-- JOIN Clients AS c ON i.ClientID = c.ClientID;
+
+-- 题目8： 用CTE先计算每个客户每张发票的"客户内部排名"，然后在外面只选出每个客户排名第1的发票（即每个客户金额最高的那张）。
+WITH rank AS (
+  SELECT 
+    i.InvoiceID, 
+    c.ClientName
+  FROM Clients AS c JOIN Invoices AS i ON i.ClientID = c.ClientID
+) SELECT ClientName
+FROM rank;
