@@ -55,10 +55,44 @@
 -- JOIN Clients AS c ON i.ClientID = c.ClientID;
 
 -- 题目8： 用CTE先计算每个客户每张发票的"客户内部排名"，然后在外面只选出每个客户排名第1的发票（即每个客户金额最高的那张）。
-WITH rank AS (
-  SELECT 
-    i.InvoiceID, 
-    c.ClientName
-  FROM Clients AS c JOIN Invoices AS i ON i.ClientID = c.ClientID
-) SELECT ClientName
-FROM rank;
+-- WITH rank AS (
+--   SELECT 
+--     i.InvoiceID, 
+--     c.ClientName,
+--     ROW_NUMBER() OVER (PARTITION BY c.ClientName ORDER BY i.Amount DESC) AS RankWithinClient,
+--     i.Amount
+--   FROM Clients AS c JOIN Invoices AS i ON i.ClientID = c.ClientID
+-- ) SELECT ClientName, Amount
+-- FROM rank
+-- WHERE RankWithinClient = 1;
+
+-- 题目9： 显示每张发票的信息，同时显示该客户的累计总金额（running total），按日期顺序累加。
+-- SELECT 
+--     i.InvoiceID,
+--     c.ClientName,
+--     i.InvoiceDate,
+--     i.Amount,
+--     SUM(i.Amount) OVER (PARTITION BY c.ClientName ORDER BY i.InvoiceDate) AS RunningTotal
+-- FROM Invoices AS i
+-- JOIN Clients AS c ON i.ClientID = c.ClientID
+-- ORDER BY c.ClientName, i.InvoiceDate;
+
+
+
+-- BigHand的客户数据库里，你需要生成一份报告：找出每个客户的最新一张发票，显示客户名、发票日期、金额。结果按客户名字母顺序排列。
+-- 要求：用CTE + 窗口函数完成，不能用 MAX(InvoiceDate) + GROUP BY 的方式。
+-- 思路：
+  -- 用CTE，创造一个inner sql query, select client name, date, invoice ID, invoice date, 同时pati 按照客户名字
+  -- ，然后在outer sql querry里，select rank是最后的，同时
+-- WITH tablerank AS (
+--   SELECT c.ClientName, c.ClientID, i.InvoiceID, i.InvoiceDate, i.Amount, 
+--   ROW_NUMBER ()  
+--   OVER (PARTITION BY c.ClientName ORDER BY InvoiceDate DESC) AS dateRank
+-- FROM Clients AS c JOIN Invoices AS i ON c.ClientID = i.ClientID)
+-- SELECT ClientName, ClientID, InvoiceID, InvoiceDate, Amount
+-- FROM tablerank
+-- WHERE dateRank = 1
+-- ORDER BY ClientName;
+
+-- 模拟题2： 显示每张发票的客户名、金额、以及该客户所有发票的平均金额，同时显示这张发票比平均值高还是低（用 'Above Average' 或 'Below Average' 表示）。
+-- 提示：需要用 AVG() OVER (PARTITION BY ...)，以及 CASE WHEN。
