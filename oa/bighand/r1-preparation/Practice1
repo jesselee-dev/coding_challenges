@@ -96,3 +96,14 @@
 
 -- 模拟题2： 显示每张发票的客户名、金额、以及该客户所有发票的平均金额，同时显示这张发票比平均值高还是低（用 'Above Average' 或 'Below Average' 表示）。
 -- 提示：需要用 AVG() OVER (PARTITION BY ...)，以及 CASE WHEN。
+WITH InvoiceRank AS (
+  SELECT c.ClientName, i.Amount, AVG(i.Amount) OVER (PARTITION BY c.ClientName) AS AverageAmount
+  FROM Clients AS c
+  JOIN Invoices AS i ON i.ClientID = c.ClientID)
+SELECT *,
+CASE 
+  WHEN Amount < AverageAmount THEN 'Below Average'
+  WHEN Amount > AverageAmount THEN 'Above Average'
+  ELSE 'Equal Average'
+END AS CheckWithAverage
+FROM InvoiceRank;
