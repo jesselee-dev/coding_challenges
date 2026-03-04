@@ -125,3 +125,42 @@
 -- WHERE i.Amount > AverageAmount;
 
 -- extra 练习题目2：显示每个客户的名字，以及他们最新一张发票和最旧一张发票的金额差（最新金额 - 最旧金额）。只显示有超过1张发票的客户。
+-- WITH LatestInvoice AS (
+--     SELECT c.ClientName, i.Amount,
+--     ROW_NUMBER() OVER (PARTITION BY c.ClientName ORDER BY i.InvoiceDate DESC) AS rn
+--     FROM Clients AS c
+--     JOIN Invoices AS i ON c.ClientID = i.ClientID
+-- ),
+-- EarliestInvoice AS (
+--     SELECT c.ClientName, i.Amount,
+--     ROW_NUMBER() OVER (PARTITION BY c.ClientName ORDER BY i.InvoiceDate ASC) AS rn
+--     FROM Clients AS c
+--     JOIN Invoices AS i ON c.ClientID = i.ClientID
+-- )
+-- SELECT l.ClientName, 
+--     l.Amount - e.Amount AS AmountDifference
+-- FROM LatestInvoice l
+-- JOIN EarliestInvoice e ON l.ClientName = e.ClientName
+-- WHERE l.rn = 1 AND e.rn = 1
+-- AND l.ClientName IN (
+--     SELECT ClientName 
+--     FROM (
+--         SELECT c.ClientName, COUNT(*) AS cnt
+--         FROM Clients AS c
+--         JOIN Invoices AS i ON c.ClientID = i.ClientID
+--         GROUP BY c.ClientName
+--     ) x WHERE cnt > 1
+-- );
+
+-- 解释的题目："Find the most recent invoice for each client"
+-- WITH LatestDates AS (
+--     SELECT ClientID, MAX(InvoiceDate) AS MaxDate
+--     FROM Invoices
+--     GROUP BY ClientID
+-- )
+-- SELECT c.ClientName, i.InvoiceDate, i.Amount
+-- FROM Clients c
+-- JOIN Invoices i ON c.ClientID = i.ClientID
+-- JOIN LatestDates ld ON i.ClientID = ld.ClientID 
+--     AND i.InvoiceDate = ld.MaxDate
+-- ORDER BY c.ClientName;
