@@ -96,14 +96,32 @@
 
 -- 模拟题2： 显示每张发票的客户名、金额、以及该客户所有发票的平均金额，同时显示这张发票比平均值高还是低（用 'Above Average' 或 'Below Average' 表示）。
 -- 提示：需要用 AVG() OVER (PARTITION BY ...)，以及 CASE WHEN。
-WITH InvoiceRank AS (
-  SELECT c.ClientName, i.Amount, AVG(i.Amount) OVER (PARTITION BY c.ClientName) AS AverageAmount
-  FROM Clients AS c
-  JOIN Invoices AS i ON i.ClientID = c.ClientID)
-SELECT *,
-CASE 
-  WHEN Amount < AverageAmount THEN 'Below Average'
-  WHEN Amount > AverageAmount THEN 'Above Average'
-  ELSE 'Equal Average'
-END AS CheckWithAverage
-FROM InvoiceRank;
+-- WITH InvoiceRank AS (
+--   SELECT c.ClientName, i.Amount, AVG(i.Amount) OVER (PARTITION BY c.ClientName) AS AverageAmount
+--   FROM Clients AS c
+--   JOIN Invoices AS i ON i.ClientID = c.ClientID)
+-- SELECT *,
+-- CASE 
+--   WHEN Amount < AverageAmount THEN 'Below Average'
+--   WHEN Amount > AverageAmount THEN 'Above Average'
+--   ELSE 'Equal Average'
+-- END AS CheckWithAverage
+-- FROM InvoiceRank;
+
+-- 模拟题3： 找出每个客户的未付发票数量和已付发票数量，显示在同一行。结果格式：
+-- SELECT c.ClientName, 
+-- COUNT (CASE WHEN i.status = 'Paid' THEN 1 END) AS Paid,
+-- COUNT (CASE WHEN i.status = 'Unpaid' THEN 1 END) AS Unpaid
+-- FROM Clients AS c
+-- JOIN Invoices AS i ON c.ClientID = i.ClientID
+-- GROUP BY c.ClientName;
+
+-- extra 练习题目1： 找出发票金额高于所有发票平均金额的发票，显示客户名、发票金额、以及所有发票的平均金额。
+-- WITH InnerTable AS (
+--   SELECT AVG(i.Amount) AS AverageAmount
+--   FROM Invoices AS i 
+-- ) SELECT c.ClientName, i.Amount, InnerTable.AverageAmount
+-- FROM Clients AS c JOIN Invoices AS i ON c.ClientID = i.ClientID, InnerTable 
+-- WHERE i.Amount > AverageAmount;
+
+-- extra 练习题目2：显示每个客户的名字，以及他们最新一张发票和最旧一张发票的金额差（最新金额 - 最旧金额）。只显示有超过1张发票的客户。
