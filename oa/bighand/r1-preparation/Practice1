@@ -164,3 +164,14 @@
 -- JOIN LatestDates ld ON i.ClientID = ld.ClientID 
 --     AND i.InvoiceDate = ld.MaxDate
 -- ORDER BY c.ClientName;
+
+
+SELECT c.ClientName, i.Amount
+FROM Clients c
+JOIN Invoices i ON c.ClientID = i.ClientID
+JOIN (
+    SELECT ClientID, MAX(InvoiceDate) AS MaxDate
+    FROM Invoices
+    GROUP BY ClientID
+) latest ON i.ClientID = latest.ClientID 
+    AND i.InvoiceDate = latest.MaxDate
